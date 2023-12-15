@@ -11,6 +11,11 @@ class IndexView(generic.ListView):
         """Return all the latest todos."""
         return Todo.objects.order_by('-created_at')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['completed_count'] = Todo.objects.filter(completed=True).count()
+        return context
+
 def add(request):
     title = request.POST['title']
     Todo.objects.create(title=title)
@@ -22,8 +27,9 @@ def update(request, todo_id):
     isCompleted = request.POST.get('isCompleted', False)
     if isCompleted == 'on':
         isCompleted = True
+        Todo.increment_completed_count()
     
-    todo.isCompleted = isCompleted
+    todo.completed = isCompleted
 
     todo.save()
     return redirect('todos:index')
